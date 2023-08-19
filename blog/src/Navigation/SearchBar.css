@@ -1,0 +1,23 @@
+.search-bar {
+    width: 100%;
+    display: inline-flex;
+    border: 1px solid black;
+}
+
+.input-search {
+    border: none;
+    width: inherit;
+}
+
+.submit-button {
+    background-color: white;
+    float: right;
+    border: none;
+}
+
+.submit-button:hover {
+    background-color: whitesmoke;
+    border: none;
+}
+
+

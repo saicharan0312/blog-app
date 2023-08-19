@@ -1,24 +1,52 @@
-import logo from './logo.svg';
+import React from 'react';
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+} from 'react-router-dom';
 import './App.css';
+import Home from "./pages/Home/Home";
+import NewPost from "./pages/NewPost/NewPost";
+import ViewPost from "./pages/ViewPost/ViewPost";
+import Profile from "./pages/Profile/Profile";
+import MainNavigation from './Navigation/MainNavigation';
 
-function App() {
+const App = () => {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <BrowserRouter>
+      <div className='left' >
+      <MainNavigation />
+      </div>
+      <div className='right'>
+      <Routes>
+        <Route 
+          path="/" 
+          exact 
+          Component={ Home }
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+        </Route>
+        <Route 
+          path='/blog/blogid' 
+          exact 
+          Component={ ViewPost }
+        >
+        </Route>
+        <Route
+          path='/userid' 
+          exact 
+          Component={ Profile }
+        >
+        </Route>
+        <Route 
+          path='/blog/newblog' 
+          exact 
+          Component={ NewPost }
+        >
+        </Route>
+      </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

@@ -1,0 +1,18 @@
+.nav-links {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+}
+
+button {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.nav-ul {
+    background-color: whitesmoke;
+    columns: black;
+    font-family: sans-serif;
+}
