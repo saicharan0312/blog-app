@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-const url = "mongodb+srv://saicharan:yashodha@cluster0.wdscast.mongodb.net/"
+
 
 app.use(bodyParser.json());
 
