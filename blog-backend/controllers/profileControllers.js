@@ -46,13 +46,13 @@ const signup = async (req, res, next) => {
     }
     const { name,  username, email, password, bio } = req.body;
     let userEmailExist;
-    console.log(name, "  " , username, "  " , email);
+    // console.log(name, "  " , username, "  " , email);
     try {
         userEmailExist = await User.findOne({
             email : email
         })
     } catch(err) {
-        console.log(err);
+        // console.log(err);
         return res.json({"error" : "error occured while fetching email"})
     }
     let userNameExist;
@@ -86,15 +86,16 @@ const signup = async (req, res, next) => {
     return res.json({"user" : newUser});
 }
 
+// done
 const login = async (req, res, next) => {
     const error = validationResult(req.body);
-    console.log("login id" , req.body);
+    // console.log("login id" , req.body);
     //console.log(error);
     if(!error.isEmpty()) {
         return res.json({"message" : "not a valid email or phone or username or short password"});
     }
     const {loginid, passowrd} = req.body;
-    console.log("login id" , loginid);
+    // console.log("login id" , loginid);
     let userEmailExist;
     let userUsernameExist;
     try {
@@ -121,7 +122,7 @@ const getProfileById = async (req, res, next) => {
     try {
         user = await User.findOne({username : userId});
     } catch(err) {
-        console.log("error", err);
+        // console.log("error", err);
         return res.json({ "message" : "unabel to fetch user" });
     }
     if(user.username === userId) {
@@ -131,28 +132,58 @@ const getProfileById = async (req, res, next) => {
 }
 
 const addFollowerAndFollowerPost = async (req, res, next) => {
-    const userName = req.params.username;
-    const { followingId } = req.body;
-    const userDetails = dummy_profile.filter((user) => userName === user.id);
-    const followUserDetails = dummy_profile.filter((user) => followingId === user.id);
-    const user = userDetails[0];
-    const toFollowUser = followUserDetails[0];
-    if(user) {
-        const isFollowedAlready = user.following.filter((user) => user === toFollowUser.id);
-        console.log("isfollowed", isFollowedAlready);
-        if(isFollowedAlready.length === 0)
-        {
-            user.following = user.following.concat(toFollowUser.id);
-            user.followingPost = user.followingPost.concat(toFollowUser.blogs);
-        }
-    } else {
-        res.json({"messgae" : "not found"});
-    } 
-    res.json({"update user details" : userDetails[0]});
+
+    // bugs to be fixed when he click button again it should not add to follow and follower
+    const { toBeFollowUser, currentUser } = req.body;
+    if(!currentUser) {
+        return res.json({"message" : "please login"});
+    }
+
+    let toBeFollowUserExist;
+    try {
+        currentUserExist = await User.findOne({ username : currentUser });
+    } catch(err) {
+        return res.json({"message" : "fecth failed"});
+    }
+    try {
+        toBeFollowUserExist = await User.findOne({ username : toBeFollowUser });
+    } catch(err) {
+        return res.json({"message" : "fetch failed"});
+    }
+    if(!currentUserExist) {
+        return res.json({"message" : "please login"});
+    }
+    if(!toBeFollowUserExist) {
+        return res.json({"message" : "user does not exist to be followed"});
+    }
+
+    currentUserExist.following.push(toBeFollowUserExist._id);
+    toBeFollowUserExist.followers.push(currentUserExist._id);
+
+    currentUserExist.followingPost =  currentUserExist.followingPost.concat(toBeFollowUserExist.blogs);
+
+    try {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        await currentUserExist.save();
+        await toBeFollowUserExist.save();
+        session.commitTransaction();
+
+    } catch(err) {
+        return res.json({"message" : "follo failed"})
+    }
+    res.json({"update user details" : currentUserExist});
 }
 
 exports.getProfileById = getProfileById;
 exports.addFollowerAndFollowerPost = addFollowerAndFollowerPost;
 exports.signup = signup;
 exports.login = login;
+
+// follow request User
+// {
+//     "toBeFollowUser" : "sai1",
+//     "currentUser" : "sai2" 
+// }
+
 

@@ -22,7 +22,7 @@ router.post(
     ],
     blogControllers.commentBlog
   );
-router.get('/user/:username', blogControllers.getAllBlogsHome);
+router.post('/', blogControllers.getAllBlogsHome);
 router.get('/:bid', blogControllers.getBlogById);
 
 module.exports = router;

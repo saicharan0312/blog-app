@@ -78,37 +78,50 @@ let dummy_profile = [
 ]
 
 const getAllBlogsHome = async (req, res, next) => {
-    const userId = req.params.username;
+    const { userId }= req.body;
     // console.log("userId", userId);
-    const user = dummy_profile.filter((user) => user.id === userId);
-    const listOfBlogsFollowed = user[0].followingPost;
-    const listOfPostToShow = dummy_blogs.filter(blog => {
-        return listOfBlogsFollowed.some(id => id === blog.id);
-      });
-    if(listOfPostToShow.length === 0) {
-        return res.json({"empty" : "nothing to show"});
-    } else {
-        res.json({"posts" : listOfPostToShow});
+    let userExist;
+    try {
+        userExist = await User.findOne({ username : userId });
+    } catch(err) {
+        return res.json({"message" : "unable to fetch"});
     }
+
+    if(!userExist) {
+        return res.json({"message" : "user dose not exist"});
+    }
+    const listOfPostsIDsToDisplay = userExist.followingPost;
+    if(listOfPostsIDsToDisplay.length === 0) {
+        return res.json({"message" : "follow someone to see some posts"});
+    }
+    // console.log("user = " ,userExist);
+    // console.log("post IDs", listOfPostsIDsToDisplay);
+    // bug to be fixed not just getting the IDs need all details of posts
+    return res.json({"loaded posts" : listOfPostsIDsToDisplay });
 }
 
 const getBlogById = async (req, res, next) => {
     const blogId = req.params.bid;
-    const blog = dummy_blogs.filter((blog, index) => blog.id === blogId);
-    if(blog) {
-        res.json({ blog : blog });
-    } else {
-        res.json({"empty": "nothing found"});
+    let postExist;
+    try {
+        postExist = await Blog.findById(blogId);
+    } catch(err) {
+        return res.json({"message" : "could not able to fetch"});
     }
+    if(!postExist) {
+        return res.json({"message" : "post doesn't exist"});
+    }
+    return res.json({"post" : postExist});
 };
 
 const writeBlog = async (req, res, next) => {
+
     const error = validationResult(req.body);
     if(!error.isEmpty()) {
         return res.json({"message" : "invalid inputs"});
     }
     const {title, description} = req.body;
-    const username = "sai1";
+    const username = "sai5";
 
     let userExist;
     try {
@@ -126,16 +139,25 @@ const writeBlog = async (req, res, next) => {
         comments : [],
         creator : userExist._id,
     });
+    // console.log("createdBlog", createBlog);
     try {
         const session = await mongoose.startSession();
         session.startTransaction();
         await createBlog.save({session : session});
         userExist.blogs.push(createBlog);
+        updateUsersOfFollowers = userExist.followers;
+        // console.log("user = ", updateUsersOfFollowers);
+        updateUsersOfFollowers.map(async (user) => {
+            let userItem = await User.findOne(user);
+            // console.log("userItem", userItem);
+            userItem.followingPost.push(createBlog);
+            await userItem.save({session : session});
+        });
         await userExist.save({session : session});
         await session.commitTransaction();
 
     } catch(err) {
-        console.log(err);
+        // console.log(err);
         return res.json({"message" : "unable to post try again"});
     }
     return res.json({"place" : createBlog});
@@ -148,18 +170,18 @@ const likeBlog = async (req, res, next) => {
     try {
         postExist = await Blog.findOne({ _id : postid });
     } catch(err) {
-        console.log("err1" ,  err);
+        // console.log("err1" ,  err);
         return res.json({"message" : "error while checking existing post"});
     }
     try {
         likedUserExist = await User.findOne({ username : likedUser });
     } catch(err) {
-        console.log("err2" ,  err);
+        // console.log("err2" ,  err);
         return res.json({"message" : "error while checking existing user Liked"});
     }
 
     if(!postExist || !likedUserExist) {
-        console.log("err3" ,  err);
+        // console.log("err3" ,  err);
         return res.json({"message" : "user ot post does not exist"});
     }
     const likes = postExist.upvotes;
@@ -175,7 +197,7 @@ const likeBlog = async (req, res, next) => {
             await postExist.save({session : session});
             session.commitTransaction()
         } catch(err) {
-            console.log("err4" ,  err);
+            // console.log("err4" ,  err);
             return res.json({"message" : "something went wrong please like again"});
         }
     }
@@ -194,26 +216,26 @@ const commentBlog = async (req, res, next) => {
     try {
         postExist = await Blog.findOne({ _id : postid });
     } catch(err) {
-        console.log("err1" ,  err);
+        // console.log("err1" ,  err);
         return res.json({"message" : "error while checking existing post"});
     }
     try {
         commentedUserExist = await User.findOne({ username : commentedUser });
     } catch(err) {
-        console.log("err2" ,  err);
+        // console.log("err2" ,  err);
         return res.json({"message" : "error while checking existing user Liked"});
     }
 
     if(!postExist || !commentedUserExist) {
-        console.log("err3" ,  err);
+        // console.log("err3" ,  err);
         return res.json({"message" : "user ot post does not exist"});
     }
     const addNewComment = {
         statement : comment,
         username : commentedUserExist._id
     }
-    console.log("commentedUserExist", commentedUserExist );
-    console.log("post exist" , postExist);
+    // console.log("commentedUserExist", commentedUserExist );
+    // console.log("post exist" , postExist);
 
     try {
         const session = await mongoose.startSession();
@@ -222,7 +244,7 @@ const commentBlog = async (req, res, next) => {
         await postExist.save({session : session});
         session.commitTransaction()
     } catch(err) {
-        console.log("err4" ,  err);
+        // console.log("err4" ,  err);
         return res.json({"message" : "something went wrong please comment again"});
     }
 
@@ -256,4 +278,10 @@ exports.commentBlog = commentBlog;
 //     "postid" : "64e039205a3f9cb155490035",
 //     "comment" : "this is my 1st comment to sai2",
 //     "commentedUser" : "sai2"
+// }
+
+// to create new post
+// {
+//     "title" : "my 1st post title on sai2",
+//     "description" : "my 1st description on sai2"
 // }

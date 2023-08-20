@@ -23,7 +23,7 @@ router.post(
     profileControllers.login
 )
 
-router.post('/follow/:username', profileControllers.addFollowerAndFollowerPost);
+router.post('/follow', profileControllers.addFollowerAndFollowerPost);
 router.get('/:username', profileControllers.getProfileById);
  
 module.exports = router; 
