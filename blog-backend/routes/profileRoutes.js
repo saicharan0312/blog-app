@@ -27,3 +27,25 @@ router.post('/follow', profileControllers.addFollowerAndFollowerPost);
 router.get('/:username', profileControllers.getProfileById);
  
 module.exports = router; 
+
+
+// signup
+// {
+//     "name": "user6",
+//     "username": "sai6",
+//     "email": "sai6@gmail.com",
+//     "password": "sai0312",
+//     "bio": "hey I'm Sai 06"
+// }
+
+// login
+// {
+//     "loginid": "sai4@gmail.com",
+//     "password": "sai0312"
+// }
+
+// follow request User
+// {
+//     "toBeFollowUser" : "sai1",
+//     "currentUser" : "sai2" 
+// }

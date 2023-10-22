@@ -125,6 +125,9 @@ const getProfileById = async (req, res, next) => {
         // console.log("error", err);
         return res.json({ "message" : "unabel to fetch user" });
     }
+    if(!user) {
+        return res.json({"messgae" : "username doesn't please creat one or enter correct name"});
+    }
     if(user.username === userId) {
         return res.json({"user" : user}); 
     }
@@ -132,8 +135,6 @@ const getProfileById = async (req, res, next) => {
 }
 
 const addFollowerAndFollowerPost = async (req, res, next) => {
-
-    // bugs to be fixed when he click button again it should not add to follow and follower
     const { toBeFollowUser, currentUser } = req.body;
     if(!currentUser) {
         return res.json({"message" : "please login"});
@@ -156,11 +157,15 @@ const addFollowerAndFollowerPost = async (req, res, next) => {
     if(!toBeFollowUserExist) {
         return res.json({"message" : "user does not exist to be followed"});
     }
+    // const ListofUserFollowing = currentUser.following;
+    if(!currentUserExist.following.includes(toBeFollowUserExist._id)) {
+        currentUserExist.following.push(toBeFollowUserExist._id);
+        toBeFollowUserExist.followers.push(currentUserExist._id);
 
-    currentUserExist.following.push(toBeFollowUserExist._id);
-    toBeFollowUserExist.followers.push(currentUserExist._id);
-
-    currentUserExist.followingPost =  currentUserExist.followingPost.concat(toBeFollowUserExist.blogs);
+        currentUserExist.followingPost =  currentUserExist.followingPost.concat(toBeFollowUserExist.blogs);
+    } else {
+        return res.json({"message" : "you are following already" , "value" : true});
+    }
 
     try {
         const session = await mongoose.startSession();

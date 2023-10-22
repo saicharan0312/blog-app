@@ -79,7 +79,6 @@ let dummy_profile = [
 
 const getAllBlogsHome = async (req, res, next) => {
     const { userId }= req.body;
-    // console.log("userId", userId);
     let userExist;
     try {
         userExist = await User.findOne({ username : userId });
@@ -94,10 +93,18 @@ const getAllBlogsHome = async (req, res, next) => {
     if(listOfPostsIDsToDisplay.length === 0) {
         return res.json({"message" : "follow someone to see some posts"});
     }
-    // console.log("user = " ,userExist);
-    // console.log("post IDs", listOfPostsIDsToDisplay);
-    // bug to be fixed not just getting the IDs need all details of posts
-    return res.json({"loaded posts" : listOfPostsIDsToDisplay });
+    let posts = [];
+    try {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        posts = await Promise.all(listOfPostsIDsToDisplay.map(async (post)=> {
+            return await Blog.findOne({_id : post._id});
+        }));
+        session.commitTransaction();
+    } catch(err) {
+        return res.json({"message" : "could not fetch eah blog details"});
+    }
+    return res.json({"loaded posts" : posts });
 }
 
 const getBlogById = async (req, res, next) => {
@@ -121,7 +128,7 @@ const writeBlog = async (req, res, next) => {
         return res.json({"message" : "invalid inputs"});
     }
     const {title, description} = req.body;
-    const username = "sai5";
+    const username = "sai1";
 
     let userExist;
     try {
@@ -257,16 +264,6 @@ exports.writeBlog = writeBlog;
 exports.likeBlog = likeBlog;
 exports.commentBlog = commentBlog;
 
-// signup
-// {
-//     "name": "user6",
-//     "username": "sai6",
-//     "email": "sai6@gmail.com",
-//     "password": "sai0312",
-//     "bio": "hey I'm Sai 06"
-// }
-
-
 // to post a like
 // {
 //     "postid" : "64e039205a3f9cb155490035",
@@ -276,8 +273,8 @@ exports.commentBlog = commentBlog;
 // to post a comment
 // {
 //     "postid" : "64e039205a3f9cb155490035",
-//     "comment" : "this is my 1st comment to sai2",
-//     "commentedUser" : "sai2"
+    // "comment" : "this is my 1st comment to sai2",
+    // "commentedUser" : "sai2"
 // }
 
 // to create new post
